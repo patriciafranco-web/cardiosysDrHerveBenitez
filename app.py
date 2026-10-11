@@ -1593,8 +1593,13 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
-if __name__ == '__main__':
+# Inicializar base de datos automáticamente al arrancar (tanto local como en Render)
+try:
     init_db()
+except Exception as e:
+    print("Error al inicializar la base de datos:", e)
+
+if __name__ == '__main__':
     # Solo abrimos el navegador si estamos corriendo localmente de manera manual
     if 'RENDER' not in os.environ:
         try:
