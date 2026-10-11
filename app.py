@@ -1595,5 +1595,11 @@ def logout():
 
 if __name__ == '__main__':
     init_db()
-    Timer(1.5, lambda: webbrowser.open_new("http://127.0.0.1:5001/")).start()
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    # Solo abrimos el navegador si estamos corriendo localmente de manera manual
+    if 'RENDER' not in os.environ:
+        try:
+            Timer(1.5, lambda: webbrowser.open_new("http://127.0.0.1:5001/")).start()
+        except:
+            pass
+    port = int(os.environ.get("PORT", 5001))
+    app.run(host='0.0.0.0', port=port, debug=False)
