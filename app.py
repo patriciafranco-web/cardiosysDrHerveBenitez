@@ -316,9 +316,9 @@ def index():
     cursor = conn.cursor()
     
     if busqueda:
-        cursor.execute("SELECT id, cedula, nombre, nacimiento, telefono FROM pacientes WHERE nombre LIKE ? OR cedula LIKE ?", (f'%{busqueda}%', f'%{busqueda}%'))
+        cursor.execute("SELECT id, cedula, nombre, nacimiento, profesion, direccion FROM pacientes WHERE nombre LIKE ? OR cedula LIKE ?", (f'%{busqueda}%', f'%{busqueda}%'))
     else:
-        cursor.execute("SELECT id, cedula, nombre, nacimiento, telefono FROM pacientes")
+        cursor.execute("SELECT id, cedula, nombre, nacimiento, profesion, direccion FROM pacientes")
     
     pacientes = cursor.fetchall()
     conn.close()
@@ -326,19 +326,22 @@ def index():
     filas_html = ""
     for p in pacientes:
         edad_txt = calcular_edad(p[3])
+        profesion_txt = p[4] or 'N/D'
+        procedencia_txt = p[5] or 'N/D'
         filas_html += f"""
         <tr>
             <td style="padding:12px; border-bottom:1px solid #ddd;">{p[1]}</td>
             <td style="padding:12px; border-bottom:1px solid #ddd; font-weight:bold;">{p[2]}</td>
-            <td style="padding:12px; border-bottom:1px solid #ddd;">{p[3]} ({edad_txt})</td>
-            <td style="padding:12px; border-bottom:1px solid #ddd;">{p[4]}</td>
+            <td style="padding:12px; border-bottom:1px solid #ddd;">{edad_txt}</td>
+            <td style="padding:12px; border-bottom:1px solid #ddd;">{profesion_txt}</td>
+            <td style="padding:12px; border-bottom:1px solid #ddd;">{procedencia_txt}</td>
             <td style="padding:12px; border-bottom:1px solid #ddd;">
                 <a href="/ficha/{p[0]}" style="background:#2ecc71; color:white; padding:6px 12px; text-decoration:none; border-radius:4px; font-size:14px;">Abrir Ficha</a>
             </td>
         </tr>
         """
     if not filas_html:
-        filas_html = "<tr><td colspan='5' style='padding:15px; text-align:center;'>No se encontraron pacientes registrados.</td></tr>"
+        filas_html = "<tr><td colspan='6' style='padding:15px; text-align:center;'>No se encontraron pacientes registrados.</td></tr>"
 
     return f"""
     <!DOCTYPE html>
@@ -362,9 +365,10 @@ def index():
                 <table style="width:100%; border-collapse:collapse; margin-top:15px;">
                     <tr style="background:#3498db; color:white;">
                         <th style="padding:12px; text-align:left;">Cédula (C.I.)</th>
-                        <th style="padding:12px; text-align:left;">Nombre del Paciente</th>
-                        <th style="padding:12px; text-align:left;">Nacimiento / Edad</th>
-                        <th style="padding:12px; text-align:left;">Teléfono</th>
+                        <th style="padding:12px; text-align:left;">Nombre y Apellido</th>
+                        <th style="padding:12px; text-align:left;">Edad</th>
+                        <th style="padding:12px; text-align:left;">Profesión</th>
+                        <th style="padding:12px; text-align:left;">Procedencia</th>
                         <th style="padding:12px; text-align:left;">Acción</th>
                     </tr>
                     {filas_html}
@@ -431,7 +435,7 @@ def nuevo():
                         <div style="flex:1;"><label style="font-weight:bold; font-size:13px;">Profesión / Ocupación:</label><input type="text" name="profesion" placeholder="Ej: Docente..." style="width:100%; padding:10px; margin:6px 0 15px 0; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;"></div>
                         <div style="flex:1;"><label style="font-weight:bold; font-size:13px;">Sanatorio / Hospital:</label><input type="text" name="sanatorio" placeholder="Ej: Sanatorio..." style="width:100%; padding:10px; margin:6px 0 15px 0; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;"></div>
                     </div>
-                    <label style="font-weight:bold; font-size:13px;">Dirección / Ciudad:</label>
+                    <label style="font-weight:bold; font-size:13px;">Dirección / Procedencia:</label>
                     <input type="text" name="direccion" placeholder="Ej: Ciudad del Este" style="width:100%; padding:10px; margin:6px 0 15px 0; border:1px solid #ccc; border-radius:4px; box-sizing:border-box;">
                     
                     <label style="font-weight:bold; font-size:13px; color:#c0392b;">⚠️ Alergias Medicamentosas:</label>
@@ -693,7 +697,10 @@ def ficha(id):
         function seleccionarFarmaco(selectObj) {{
             let recetaInput = document.getElementById('receta_input');
             if (selectObj.value) {{
-                recetaInput.value += (recetaInput.value ? " | " : "") + selectObj.value;
+                // Generación automática con formato de receta solicitada
+                let farmacoLimpio = selectObj.value.split(' - ')[0];
+                let itemFormateado = farmacoLimpio + " comprimido - Caja I (uno)";
+                recetaInput.value += (recetaInput.value ? "\\n" : "") + itemFormateado;
                 selectObj.value = "";
             }}
         }}
@@ -979,8 +986,8 @@ def ficha(id):
                         <label style="font-size:13px; font-weight:bold;">Rx (Medicamentos):</label>
                         <textarea id="receta_input" name="receta" rows="3" placeholder="Ej: Losartán 50mg..." style="width:100%; padding:8px; margin:5px 0 10px 0; border-radius:4px; border:none; box-sizing:border-box;"></textarea>
                         
-                        <label style="font-size:13px; font-weight:bold;">Indicaciones de Uso:</label>
-                        <textarea name="indicaciones" rows="3" placeholder="Ej: Tomar con agua..." style="width:100%; padding:8px; margin:5px 0 15px 0; border-radius:4px; border:none; box-sizing:border-box;"></textarea>
+                        <label style="font-size:13px; font-weight:bold;">Recomendaciones Generales y Control:</label>
+                        <textarea name="indicaciones" rows="3" placeholder="Dieta, actividad física, control de presión arterial, y Control en X tiempo..." style="width:100%; padding:8px; margin:5px 0 15px 0; border-radius:4px; border:none; box-sizing:border-box;"></textarea>
                         
                         <button type="button" onclick="vincularRecetaAEvolucion()" style="background:#0284c7; color:white; border:none; padding:8px; border-radius:4px; font-weight:bold; cursor:pointer; width:100%; margin-bottom:8px; font-size:12px;">🔗 Copiar a Evolución de Hoy</button>
                         
@@ -1462,13 +1469,13 @@ def generar_receta_pdf(id):
 
     diagnostico = request.form.get('diagnostico', 'Control Cardiológico')
     receta = request.form.get('receta', 'Sin medicamentos')
-    indicaciones = request.form.get('indicaciones', 'Seguir indicaciones')
+    indicaciones = request.form.get('indicaciones', 'Recomendaciones generales y control')
     edad_txt = calcular_edad(paciente[3])
 
     pdf_path = os.path.join(base_dir, f"receta_oficial_{id}.pdf")
     c = canvas.Canvas(pdf_path, pagesize=letter)
     
-    # Página 1: Receta
+    # Página 1: Receta Médica Electrónica con formato automático de medicamentos
     c.setFont("Helvetica-Bold", 16)
     c.drawString(50, 750, "Dr. Herve Benitez")
     c.setFont("Helvetica", 10)
@@ -1494,7 +1501,7 @@ def generar_receta_pdf(id):
     
     c.showPage()
     
-    # Página 2: Indicaciones
+    # Página 2: Plan e Indicaciones (Recomendaciones Generales y Control)
     c.setFont("Helvetica-Bold", 16)
     c.drawString(50, 750, "Dr. Herve Benitez")
     c.setFont("Helvetica", 10)
@@ -1506,7 +1513,7 @@ def generar_receta_pdf(id):
     c.drawString(50, 670, f"Paciente: {paciente[2]} | C.I.: {paciente[1]} | Edad: {edad_txt}")
     c.line(50, 640, 560, 640)
     c.setFont("Helvetica-Bold", 14)
-    c.drawString(50, 600, "Indicaciones Generales y Recomendaciones:")
+    c.drawString(50, 600, "Recomendaciones generales y Control:")
     c.setFont("Helvetica", 11)
     y = 570
     for ind in indicaciones.split('\n'):
@@ -1593,7 +1600,7 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
-# Inicializar base de datos automáticamente al arrancar (tanto local como en Render)
+# Inicializar base de datos de forma segura para Gunicorn / Render
 try:
     init_db()
 except Exception as e:
