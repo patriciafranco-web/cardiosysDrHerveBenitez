@@ -695,15 +695,29 @@ def ficha(id):
         let sexoPacienteStr = "{sexo_paciente}";
 
         function seleccionarFarmaco(selectObj) {{
+            let valorSeleccionado = selectObj.value;
+            if (!valorSeleccionado) return;
+
             let recetaInput = document.getElementById('receta_input');
-            if (selectObj.value) {{
-                // Generación automática con formato de receta solicitada
-                let farmacoLimpio = selectObj.value.split(' - ')[0];
-                let itemFormateado = farmacoLimpio + " comprimido - Caja I (uno)";
-                recetaInput.value += (recetaInput.value ? "\\n" : "") + itemFormateado;
-                selectObj.value = "";
+            let indicacionesInput = document.querySelector('textarea[name="indicaciones"]');
+
+            let partes = valorSeleccionado.split(' - ');
+            let farmacoLimpio = partes[0].trim();
+            let posologia = partes.length > 1 ? partes[1].trim() : "";
+
+            // 1. En la hoja de receta (abajo), solo el medicamento limpio con formato de caja
+            let itemReceta = farmacoLimpio + " comprimido - Caja I (uno)";
+            recetaInput.value += (recetaInput.value ? "\\n" : "") + itemReceta;
+
+            // 2. En la hoja de indicaciones (arriba), la posología o pauta
+            if (posologia) {{
+                let itemIndicacion = farmacoLimpio + ": " + posologia;
+                indicacionesInput.value += (indicacionesInput.value ? "\\n" : "") + itemIndicacion;
             }}
+
+            selectObj.value = "";
         }}
+
         function agregarTexto(texto) {{
             let campo = document.getElementById('tratamiento_evolucion');
             campo.value += (campo.value ? " " : "") + texto;
@@ -1475,7 +1489,7 @@ def generar_receta_pdf(id):
     pdf_path = os.path.join(base_dir, f"receta_oficial_{id}.pdf")
     c = canvas.Canvas(pdf_path, pagesize=letter)
     
-    # Página 1: Receta Médica Electrónica con formato automático de medicamentos
+    # Página 1: Receta
     c.setFont("Helvetica-Bold", 16)
     c.drawString(50, 750, "Dr. Herve Benitez")
     c.setFont("Helvetica", 10)
@@ -1501,7 +1515,7 @@ def generar_receta_pdf(id):
     
     c.showPage()
     
-    # Página 2: Plan e Indicaciones (Recomendaciones Generales y Control)
+    # Página 2: Indicaciones
     c.setFont("Helvetica-Bold", 16)
     c.drawString(50, 750, "Dr. Herve Benitez")
     c.setFont("Helvetica", 10)
