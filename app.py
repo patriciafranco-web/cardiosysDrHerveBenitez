@@ -699,22 +699,14 @@ def ficha(id):
             if (!valorSeleccionado) return;
 
             let recetaInput = document.getElementById('receta_input');
-            let indicacionesInput = document.querySelector('textarea[name="indicaciones"]');
 
-            // 1. Extraemos sólo el nombre y la dosis (ej. "Dapaglix 10mg" de "Dapaglix 10mg - 1 comp c/24h")
+            // Limpieza inteligente: quitamos cualquier posología previa (ej. de "Losartan 50mg - 1 comp c/12h" a solo "Losartan 50mg")
             let partes = valorSeleccionado.split(' - ');
             let farmacoLimpio = partes[0].trim();
-            let posologiaCompleta = partes.length > 1 ? partes[1].trim() : "";
 
-            // 2. En la hoja de receta (abajo) generamos el formato automático limpio: "Dapaglix 10mg comprimido - Caja I (uno)"
+            // Formato exacto de receta limpio: [Nombre y Dosis] comprimido - Caja I (uno)
             let itemReceta = farmacoLimpio + " comprimido - Caja I (uno)";
             recetaInput.value += (recetaInput.value ? "\\n" : "") + itemReceta;
-
-            // 3. En la hoja de indicaciones (arriba), mandamos automáticamente la posología/horario para consumo del paciente
-            if (posologiaCompleta) {{
-                let itemIndicacion = farmacoLimpio + ": " + posologiaCompleta;
-                indicacionesInput.value += (indicacionesInput.value ? "\\n" : "") + itemIndicacion;
-            }}
 
             selectObj.value = "";
         }}
