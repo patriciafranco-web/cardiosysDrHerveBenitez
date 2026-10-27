@@ -701,17 +701,18 @@ def ficha(id):
             let recetaInput = document.getElementById('receta_input');
             let indicacionesInput = document.querySelector('textarea[name="indicaciones"]');
 
+            // 1. Extraemos sólo el nombre y la dosis (ej. "Dapaglix 10mg" de "Dapaglix 10mg - 1 comp c/24h")
             let partes = valorSeleccionado.split(' - ');
             let farmacoLimpio = partes[0].trim();
-            let posologia = partes.length > 1 ? partes[1].trim() : "";
+            let posologiaCompleta = partes.length > 1 ? partes[1].trim() : "";
 
-            // 1. En la hoja de receta (abajo), solo el medicamento limpio con formato de caja
+            // 2. En la hoja de receta (abajo) generamos el formato automático limpio: "Dapaglix 10mg comprimido - Caja I (uno)"
             let itemReceta = farmacoLimpio + " comprimido - Caja I (uno)";
             recetaInput.value += (recetaInput.value ? "\\n" : "") + itemReceta;
 
-            // 2. En la hoja de indicaciones (arriba), la posología o pauta
-            if (posologia) {{
-                let itemIndicacion = farmacoLimpio + ": " + posologia;
+            // 3. En la hoja de indicaciones (arriba), mandamos automáticamente la posología/horario para consumo del paciente
+            if (posologiaCompleta) {{
+                let itemIndicacion = farmacoLimpio + ": " + posologiaCompleta;
                 indicacionesInput.value += (indicacionesInput.value ? "\\n" : "") + itemIndicacion;
             }}
 
@@ -1245,7 +1246,7 @@ def ficha(id):
                         <span id="res_maggic" style="font-size:11px; font-weight:bold; color:#075985; display:block; margin-top:4px;"></span>
                     </div>
 
-                    <!-- 13. QTc (BAZETT / FRIDERICIA) -->
+                    <!-- 13. QTc (BAZETT Y FRIDERICIA) -->
                     <div id="calc_qtc" style="display:none; background:#f8fafc; border:1px solid #0f172a; padding:12px; border-radius:8px; margin-bottom:12px;">
                         <h4 style="margin:0 0 8px 0; color:#0f172a; font-size:13px;">📈 Calculadora QTc (Bazett y Fridericia)</h4>
                         <div style="display:flex; gap:6px; margin:5px 0;">
@@ -1489,7 +1490,7 @@ def generar_receta_pdf(id):
     pdf_path = os.path.join(base_dir, f"receta_oficial_{id}.pdf")
     c = canvas.Canvas(pdf_path, pagesize=letter)
     
-    # Página 1: Receta
+    # Página 1: Receta (Hoja de abajo) con formato limpio: Nombre y Dosis comprimido - Caja I (uno)
     c.setFont("Helvetica-Bold", 16)
     c.drawString(50, 750, "Dr. Herve Benitez")
     c.setFont("Helvetica", 10)
@@ -1515,7 +1516,7 @@ def generar_receta_pdf(id):
     
     c.showPage()
     
-    # Página 2: Indicaciones
+    # Página 2: Plan e Indicaciones (Hoja de arriba) con Recomendaciones Generales y Control
     c.setFont("Helvetica-Bold", 16)
     c.drawString(50, 750, "Dr. Herve Benitez")
     c.setFont("Helvetica", 10)
