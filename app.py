@@ -701,19 +701,19 @@ def ficha(id):
             let recetaInput = document.getElementById('receta_input');
             let indicacionesInput = document.querySelector('textarea[name="indicaciones"]');
 
-            // Separar nombre/dosis comercial de la posología (Ej: "Losartán 50mg - 1 comp c/12h")
+            // Separamos el nombre/dosis comercial de la posología (Ej: "Losartán 50mg - 1 comp c/12h")
             let partes = valorSeleccionado.split(' - ');
             let farmacoLimpio = partes[0].trim();
             let posologia = partes.length > 1 ? partes[1].trim() : "";
 
-            // 1. RECETA (Abajo): Saca SOLO el nombre, mg y Caja I (uno)
+            // 1. RECETA (Abajo): SOLO nombre y dosis con el formato de caja limpio
             let itemReceta = farmacoLimpio + " comprimido - Caja I (uno)";
             recetaInput.value += (recetaInput.value ? "\\n" : "") + itemReceta;
 
-            // 2. INDICACIONES (Arriba): Saca el nombre, dosis y el horario/posología
+            // 2. INDICACIONES (Arriba): Agrega la posología en la línea superior para el paciente
             if (posologia) {{
                 let itemIndicacion = farmacoLimpio + ": " + posologia;
-                indicacionesInput.value += (indicacionesInput.value ? "\\n" : "") + itemIndicacion;
+                indicacionesInput.value = itemIndicacion + (indicacionesInput.value ? "\\n" + indicacionesInput.value : "");
             }}
 
             selectObj.value = "";
