@@ -699,14 +699,22 @@ def ficha(id):
             if (!valorSeleccionado) return;
 
             let recetaInput = document.getElementById('receta_input');
+            let indicacionesInput = document.querySelector('textarea[name="indicaciones"]');
 
-            // Limpieza inteligente: quitamos cualquier posología previa (ej. de "Losartan 50mg - 1 comp c/12h" a solo "Losartan 50mg")
+            // Separar nombre/dosis comercial de la posología (Ej: "Losartán 50mg - 1 comp c/12h")
             let partes = valorSeleccionado.split(' - ');
             let farmacoLimpio = partes[0].trim();
+            let posologia = partes.length > 1 ? partes[1].trim() : "";
 
-            // Formato exacto de receta limpio: [Nombre y Dosis] comprimido - Caja I (uno)
+            // 1. RECETA (Abajo): Saca SOLO el nombre, mg y Caja I (uno)
             let itemReceta = farmacoLimpio + " comprimido - Caja I (uno)";
             recetaInput.value += (recetaInput.value ? "\\n" : "") + itemReceta;
+
+            // 2. INDICACIONES (Arriba): Saca el nombre, dosis y el horario/posología
+            if (posologia) {{
+                let itemIndicacion = farmacoLimpio + ": " + posologia;
+                indicacionesInput.value += (indicacionesInput.value ? "\\n" : "") + itemIndicacion;
+            }}
 
             selectObj.value = "";
         }}
@@ -1482,7 +1490,7 @@ def generar_receta_pdf(id):
     pdf_path = os.path.join(base_dir, f"receta_oficial_{id}.pdf")
     c = canvas.Canvas(pdf_path, pagesize=letter)
     
-    # Página 1: Receta (Hoja de abajo) con formato limpio: Nombre y Dosis comprimido - Caja I (uno)
+    # Página 1: Receta (Hoja de abajo) -> Solo nombre, dosis y Caja I (uno)
     c.setFont("Helvetica-Bold", 16)
     c.drawString(50, 750, "Dr. Herve Benitez")
     c.setFont("Helvetica", 10)
@@ -1508,7 +1516,7 @@ def generar_receta_pdf(id):
     
     c.showPage()
     
-    # Página 2: Plan e Indicaciones (Hoja de arriba) con Recomendaciones Generales y Control
+    # Página 2: Plan e Indicaciones (Hoja de arriba) -> Posología, recomendaciones y control
     c.setFont("Helvetica-Bold", 16)
     c.drawString(50, 750, "Dr. Herve Benitez")
     c.setFont("Helvetica", 10)
